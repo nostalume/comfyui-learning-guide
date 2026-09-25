@@ -7,11 +7,9 @@
 // 锚点同理：目标页在、`#fragment` 不在时，页面照常打开、只是停在页首，
 // 构建与肉眼都发现不了 —— 与站外链接失效属同一类盲区。
 //
-// 运行时无关：本脚本只用 `node:` 前缀的内置模块，Node 与 Deno 都能直接运行：
-//
+// 用法：
 //   node scripts/check-links.mjs [--verbose]
-//   deno run --allow-read scripts/check-links.mjs [--verbose]
-//   deno task check:links      # 见仓库根的 deno.json
+//   pnpm check:links      # 等价的脚本调用，见 package.json
 //
 // 退出码：0 = 无失效链接（含锚点）；1 = 存在失效链接或失效锚点。
 
