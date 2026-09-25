@@ -151,9 +151,15 @@ pnpm install
 
 ### 部署
 
-目标是 **GitHub Pages**（仓库名 `comfyui-learning-guide`，所以站点路径是 `/comfyui-learning-guide`）。自动部署工作流尚未接入。
+站点发布在 **GitHub Pages**：<https://nostalume.github.io/comfyui-learning-guide/>
 
-构建产物在 `dist/`，可以托管到任意静态服务器；部署在子路径下时，站点路径配置必须与之一致。
+推送到 `main` 即触发自动部署（`.github/workflows/deploy.yml`）：安装依赖 → `pnpm build` → 跑
+`pnpm check:links` 门禁 → 发布 `dist/`。**门禁不通过时不会覆盖线上版本**，站点保持上一次成功的内容。
+
+首次启用需在仓库设置里做一次：**Settings → Pages → Source** 选 `GitHub Actions`。
+
+站点路径由 `astro.config.mjs` 的 `base` 决定（`/comfyui-learning-guide`），须与仓库名一致。
+构建产物在 `dist/`，也可以托管到任意静态服务器。
 
 ---
 

@@ -1,0 +1,55 @@
+# 构建 → 内部链接门禁 → 发布到 GitHub Pages
+#
+# 两个 job 是有意分开的：build 里跑「构建 + 门禁」，deploy 只在 build 成功后执行。
+# 门禁失败时 deploy 的 needs 不满足 ⇒ 站点保持上一次成功的版本，不会被坏内容覆盖。
+#
+# 首次启用需在仓库里人工做一次：Settings → Pages → Source 选 "GitHub Actions"。
+# 站点地址 https://nostalume.github.io/comfyui-learning-guide/ —— base 路径写在
+# astro.config.mjs 里，与本文件无关，不要在这里重复配置。
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build and upload site
+        uses: withastro/action@v6
+        with:
+          node-version: 22
+          package-manager: pnpm@11
+          # 关掉 Astro 构建缓存：它的缓存目录是 node_modules/.astro，而本项目的构建
+          # 入口 pnpm build（scripts/clean.mjs）默认只清 dist/、不清这个缓存 ——
+          # 陈旧的内容缓存会带出 Duplicate id 与旧页面残留。CI 要的是可复现，不是快。
+          cache: false
+
+      - name: Gate - internal links
+        run: pnpm run check:links
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
