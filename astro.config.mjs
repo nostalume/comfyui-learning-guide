@@ -32,17 +32,16 @@ export default defineConfig({
       title: 'ComfyUI 学习指南',
       description:
         '从第一性原理出发的 ComfyUI 中文学习材料 —— 概念之间有推导链接，术语由推导引入。',
-      defaultLocale: 'root',
+      // 单语言站点：中文为 root locale，直接挂在根路径（内容位于 src/content/docs/）。
+      //
+      // 这里**不声明** defaultLocale，也不声明 en —— Starlight 对已声明但内容缺失的
+      // locale 会自动回退渲染默认语言内容（生成 /en/ 幽灵副本 + Pagefind 双索引）。
+      // 官方单语言写法即「只留 root」：https://starlight.astro.build/guides/i18n/
+      // 英文侧要启用时，再在 src/content/docs/en/ 建目录并补回 locale 声明。
       locales: {
-        // 中文为默认语言，直接挂在根路径（内容位于 src/content/docs/）
         root: {
           label: '简体中文',
           lang: 'zh-CN',
-        },
-        // 英文侧（内容位于 src/content/docs/en/）
-        en: {
-          label: 'English',
-          lang: 'en',
         },
       },
       // Pagefind 内建搜索：无需插件。中文分词由 Pagefind 处理。

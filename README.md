@@ -47,7 +47,7 @@
     ├── plugins/
     │   └── remark-relative-links.mjs   构建期把相对 .md 链接改写为站内路由
     ├── styles/custom.css     中文排版微调
-    └── content/docs/         全部文档（Markdown），英文侧将位于 en/
+    └── content/docs/         全部文档（Markdown），单语言（中文 = root locale）
         ├── 0-零基础入门/         ┐
         ├── 1-概述与安装部署/     │ 第 0–3 章：主线
         ├── 2-模型体系与管理/     │ （目录名是历史沿革，站上的章名由 astro.config.mjs 的侧边栏给出）
@@ -204,7 +204,7 @@ Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
 >
 > **为什么它有时又不见**：垫片是否被注入随本轮调用而异 —— 因此实际表现是**间歇失败**：同样的 `pnpm run build` 可能连过几次，也可能连续失败。**别把它记成「随机故障」**：只要垫片在，失败就是确定的（第 50 个文件处），修法也是确定的。
 >
-> **本机可靠配方（实测 175 页 / 退出 0 / `Complete!` + `check:links` 0 失效）：**
+> **本机可靠配方（实测 88 页 / 退出 0 / `Complete!` + `check:links` 0 失效）：**
 >
 > ```powershell
 > $env:CODEBUDDY_SAFE_DELETE_ENABLED = "0"   # 关掉删除垫片（本进程及其子进程）
@@ -278,7 +278,9 @@ pnpm run build  > /tmp/build.log 2>&1; echo "EXIT=$?"; tail -20 /tmp/build.log
    - 代价：**改了插件就要清缓存**（见排错）。改内容本身不需要。
 3. **不要写内容内的根相对链接**（如 `/foo/`）。它们不会被自动补上 `base` 前缀，子路径部署下必然 404。需要跨文档跳转就用第 2 条的相对 `.md`。
 4. **侧边栏自动生成** —— `astro.config.mjs` 里按目录 `autogenerate`，新增文档无需改配置。组内次序按文件名，需要插队就用 frontmatter 的 `sidebar.order`（如 `A7` 设 `order: 0` 排在附录首位）与 `sidebar.label`（覆盖过长的 `title`）。
-5. **中英双语** —— 中文在 `src/content/docs/`，英文将位于 `src/content/docs/en/`。尚未翻译的页面会回退到中文并以提示条说明。
+5. **单语言（中文）** —— 中文即 root locale，内容在 `src/content/docs/`。
+   - `astro.config.mjs` 的 `locales` 只声明 `root`，**不声明 `defaultLocale`、也不声明 `en`**。Starlight 对「已声明但内容缺失」的 locale 会**自动回退**渲染默认语言内容：一旦声明 `en` 而 `src/content/docs/en/` 不存在，就会为每一篇生成 `/en/` 下的**中文副本**（实测 87 页），并让 Pagefind 建**双语言索引**。
+   - 因此英文侧启用时必须**同时**：建 `src/content/docs/en/` 目录 + 补回 `en` locale 声明；二者缺一都会造成幽灵副本。官方单语言写法见 <https://starlight.astro.build/guides/i18n/>（"Monolingual sites"）。
 6. **主线概念类文档必须带「本文承接 / 本文引出」块**，写明上文哪一篇的哪个概念推出了本文、本文的概念被下文哪一篇使用。这是整套材料里**唯一可机械检验的连贯性机制** —— 概念之间的推导链接不再只存在于作者心里，而成了可检索的文本。
    - **覆盖面（2026-09-24 实测）：** 主线 53 篇（第 0–9 章）**全部具备**，共 53 处。实战案例（25）、附录（8）、首页（1）**不要求** —— 案例是练习体裁（承接关系由「本篇是练习 → 正篇」声明），附录是查阅型沉淀物。
    - 新增或改写主线文档时，请同时补上这个块；格式为引用块，紧跟在第一个一级标题之后（写法见任意一篇主线文档的开头）。
@@ -312,8 +314,10 @@ pnpm run build  > /tmp/build.log 2>&1; echo "EXIT=$?"; tail -20 /tmp/build.log
 
 其中与使用者直接相关的几条：
 
-- 站点 `/en/` 下的页面目前是中文内容的**回退副本**，因此搜索结果会出现重复条目，待英文内容落地后消解。
-- URL 里的章节号会丢点号：`1.6-连线逻辑` → `/16-连线逻辑/`。
+- 站点为**单语言（中文）**。`/en/` 下不再有回退副本 —— 此前因声明了 `en` locale 而生成的 87 页中文副本已移除，搜索索引随之从双语言收敛为单语言。
+- URL 里的章节号会丢点号：`1.6-连线逻辑` → `/16-连线逻辑/`；目录名中的大写字母会转小写：`4-ControlNet精准控制` → `/4-controlnet精准控制/`。
+  - 这是 Astro 生成 slug 的标准行为（逐段过 `github-slugger`），**不是配置错误**。正文里的相对 `.md` 链接由 `remark-relative-links.mjs` 按**同一套算法**重写，因此站内跳转不受影响。
+  - 曾评估过用 frontmatter `slug` 保留点号（可让 URL 呈 `6.1-常用节点包`），结论是**不改**：需同时改动 87 篇 + 该插件（否则站内链接会因两套算法分叉而大面积失效），代价大于收益（URL 本身可用、可分享、对 SEO 无实质影响）。
 - 尚未接入 GitHub Pages 自动部署，也尚未产出 PDF。
 - 全文涉及 ComfyUI 安装位置处一律写作占位符 **`<ComfyUI 目录>`**（它**不是**固定名称，按你实际的安装位置理解）。曾有一批文档写死了原作者本机的绝对路径，现已全部归一。
 
