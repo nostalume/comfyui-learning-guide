@@ -1,0 +1,13 @@
+{
+  "$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+  "tasks": {
+    "clean": "deno run --allow-read --allow-write scripts/clean.mjs",
+    "clean:cache": "deno run --allow-read --allow-write scripts/clean.mjs --with-cache",
+    "check:links": "deno run --allow-read scripts/check-links.mjs",
+    "build": "deno task clean && pnpm exec astro build",
+    "start": "pnpm exec astro dev",
+    "dev": "pnpm exec astro dev",
+    "preview": "pnpm exec astro preview",
+    "check": "pnpm exec astro check"
+  }
+}

@@ -1,0 +1,37 @@
+/* ComfyUI 学习指南 —— Starlight 主题微调
+ *
+ * 目标：让中文正文的阅读节奏更舒服。
+ * 不覆盖 Starlight 的配色变量（那由主题自身处理，且要兼容深浅色切换）。
+ */
+
+/* 中英混排时，正文字号略提，行高放宽 —— 中文方块字在默认行高下偏挤。 */
+:root {
+  --sl-content-width: 52rem;
+}
+
+.sl-markdown-content {
+  /* 中文段落行高：Starlight 默认按西文优化，中文需要更大留白。 */
+  line-height: 1.85;
+}
+
+/* 中文首行缩进不使用 —— 保持段间距即可，缩进在文档类站点反而干扰扫读。 */
+.sl-markdown-content p {
+  text-indent: 0;
+}
+
+/* 行内代码在中文语境中容易被挤压，补一点水平内边距。 */
+.sl-markdown-content :not(pre) > code {
+  padding: 0.15em 0.35em;
+}
+
+/* 表格在窄屏下允许横向滚动，避免中文表格内容被折断。 */
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* 引用块 —— 本套文档用 > 承载「本文承接 / 本文引出」与时效性提示，需要更醒目。 */
+.sl-markdown-content blockquote {
+  border-inline-start-width: 3px;
+}
