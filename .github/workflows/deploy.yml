@@ -1,11 +1,13 @@
-# 构建 → 内部链接门禁 → 发布到 GitHub Pages
+# Build -> internal-link gate -> publish to GitHub Pages.
 #
-# 两个 job 是有意分开的：build 里跑「构建 + 门禁」，deploy 只在 build 成功后执行。
-# 门禁失败时 deploy 的 needs 不满足 ⇒ 站点保持上一次成功的版本，不会被坏内容覆盖。
+# The two jobs are intentionally separate: `build` runs the build plus the
+# link gate; `deploy` only runs after `build` succeeds. If the gate fails,
+# `deploy.needs` is unmet, so the live site keeps the last good version
+# and is never overwritten with broken content.
 #
-# 首次启用需在仓库里人工做一次：Settings → Pages → Source 选 "GitHub Actions"。
-# 站点地址 https://nostalume.github.io/comfyui-learning-guide/ —— base 路径写在
-# astro.config.mjs 里，与本文件无关，不要在这里重复配置。
+# First-time setup is manual, once: Settings -> Pages -> Source = "GitHub Actions".
+# Site URL is https://nostalume.github.io/comfyui-learning-guide/ -- the base path
+# lives in astro.config.mjs, not here. Do not duplicate it in this file.
 
 name: Deploy to GitHub Pages
 
@@ -35,9 +37,11 @@ jobs:
         with:
           node-version: 22
           package-manager: pnpm@11
-          # 关掉 Astro 构建缓存：它的缓存目录是 node_modules/.astro，而本项目的构建
-          # 入口 pnpm build（scripts/clean.mjs）默认只清 dist/、不清这个缓存 ——
-          # 陈旧的内容缓存会带出 Duplicate id 与旧页面残留。CI 要的是可复现，不是快。
+          # Disable the Astro build cache: its cache dir is node_modules/.astro,
+          # and this project's build entry (pnpm build -> scripts/clean.mjs) only
+          # cleans dist/ by default, not that cache. A stale content cache leads
+          # to Duplicate id errors and leftover old pages. CI wants reproducible,
+          # not fast.
           cache: false
 
       - name: Gate - internal links
